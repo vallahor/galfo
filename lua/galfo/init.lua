@@ -1,4 +1,4 @@
-local config = require("galfo.config")
+local config = require("galfo.config").defaults
 
 local bit = require("bit")
 local band, bor, lshift, rshift = bit.band, bit.bor, bit.lshift, bit.rshift
