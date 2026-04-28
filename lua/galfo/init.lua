@@ -1052,6 +1052,10 @@ local function handle_size_change(width)
 		viewport.hi, right_remaining = compute_right_remain_from_start(width)
 	elseif viewport.hi == #tabs_cache then
 		viewport.lo, left_remaining = compute_left_remain_from_end(width)
+		if viewport.index < viewport.lo then
+			handle_index_before(width)
+			return
+		end
 	else
 		local indicators = viewport.truncate_left_width + viewport.truncate_right_width
 		local reserved = viewport.right_reserved > 0 and viewport.right_reserved or indicators
