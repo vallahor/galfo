@@ -797,8 +797,6 @@ local function remove_buf_from_tabline(bufnr)
 		if not replacement then
 			replacement = nvim_create_buf(true, false)
 		end
-
-		nvim_set_current_buf(replacement)
 	end
 
 	local wins = win_findbuf(bufnr)
@@ -1148,6 +1146,8 @@ function I.GalfoRender()
 		if sidebar.winnr and nvim_get_current_win() == sidebar.winnr then
 			sidebar.focus = true
 			viewport.buf = -1
+		elseif viewport.buf == nvim_get_current_buf() then
+			viewport.index = buf_index[viewport.buf]
 		end
 
 		local current_tab = tabs_cache[viewport.index]
@@ -1587,13 +1587,13 @@ function Galfo.execute_buf_queue()
 		insert_buf_into_tabline(buf)
 		::continue::
 	end
-	nvim_set_current_buf(viewport.buf)
 	redrawtabline()
 end
 
 local function setup_autocmds()
 	-- without it that's impossible to load properly buffers like InspectTree
 	-- Terminal and others ... and still working with Scratch buffers.
+	-- By following the `config.ignore`.
 	api.nvim_create_autocmd({ "BufWinEnter" }, {
 		callback = function(ev)
 			local buf = ev.buf
@@ -1615,15 +1615,12 @@ local function setup_autocmds()
 				return
 			end
 			local buf = ev.buf
+			viewport.buf = buf
 
 			if sidebar.enabled and sidebar_filetypes[bo[buf].filetype] then
 				sidebar.winnr = nvim_get_current_win()
 			else
 				sidebar.focus = false
-				local index = buf_index[buf]
-
-				viewport.buf = buf
-				viewport.index = index
 			end
 
 			viewport_state.updated = true
@@ -1648,12 +1645,7 @@ local function setup_autocmds()
 
 			if tab.visibility ~= STATES.VISIBLE then
 				tab.visibility = STATES.VISIBLE
-
-				if tab_set_new_display(tab) then
-					if viewport.lo <= index and index <= viewport.hi then
-						viewport_state.tab_width_changed = true
-					end
-				end
+				tab_set_new_display(tab)
 			end
 		end,
 	})
@@ -2033,7 +2025,6 @@ function Galfo.setup(opts)
 	I.base_highlights = config.base_highlights
 
 	I.ignore = { buftypes = {}, filetypes = {}, bufnames = {} }
-	I.ignore.terminal = config.ignore.terminal
 
 	for _, buftype in ipairs(config.ignore.buftypes) do
 		I.ignore.buftypes[buftype] = true
