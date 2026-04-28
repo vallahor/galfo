@@ -1,4 +1,6 @@
-local M = {
+local M = {}
+
+M.defaults = {
 	focus_on_click = true,
 
 	base_highlights = {
@@ -37,9 +39,10 @@ local M = {
 	},
 
 	-- Each tab could be text, static or icon
-	-- `text`: fuction(tab) end
+	-- `text`: function(tab) return "some text" end
 	-- `static`: "" -- just a string
 	-- `icon`: function(icon, tab) end -- icon is the filetype string. must return just 1 icon.
+	-- `icon_custom`: function(tab) end -- must return just 1 icon.
 	-- And if the highlights in this case are no passed it applies the provider filetype color.
 	-- If using some custom icon you should provide the highlight group
 	-- Or just `highlights = {}` to use the defaults.
@@ -51,12 +54,12 @@ local M = {
 	-- is_focused: boolean
 	-- is_modified: boolean
 	-- is_pinned: boolean
-	-- diagnostics: {[vim.diagnostic.severity]: integer} -- Eg.: ab.diagnostics[vim.diagnostic.severity.ERROR]
+	-- diagnostics: {[vim.diagnostic.severity]: integer} -- Eg.: tab.diagnostics[vim.diagnostic.severity.ERROR]
 	--
 	-- `highlights`: It receives the highlight group.
 	-- You can customize existing colors using:
-	-- `Galfo.derive_hl` (returns new group)
-	-- `Galfo.get_hex` (return { fg: string, bf: string })
+	-- `galfo.derive_hl` (returns new group)
+	-- `galfo.get_hex` (return { fg: string, bg: string })
 	-- Diagnostics overrides the default and is applied using `diagnostic.filter`
 	-- highlights = {
 	--   visible = { default = "", modified = "" },
@@ -192,7 +195,7 @@ local M = {
 	},
 
 	-- Used when a buffer is deleted/replaced in a window.
-	-- That's is for my use case. hehe
+	-- That's for my use case.
 	-- I have a bright cursor line in the "current buffer" and a dimmed version in
 	-- all other windows, so it has to run in other windows to preserve this behavior.
 	-- If you don't have that kind of usage, just ignore.
@@ -205,7 +208,7 @@ local M = {
 }
 
 function M.resolve(opts)
-	return vim.tbl_deep_extend("force", M.defaults, opts or {})
+	return vim.tbl_deep_extend("force", vim.deepcopy(M.defaults), opts or {})
 end
 
 return M

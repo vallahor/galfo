@@ -34,7 +34,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 Using [vim.pack](https://neovim.io/doc/user/builtin.html#pack):
 
 ```lua
-vim.pack.add({"https://github.com/vallahor/galfo"})
+vim.pack.add({ "https://github.com/vallahor/galfo" })
 vim.api.nvim_create_autocmd("VimEnter", {
   once = true,
   callback = function()
@@ -156,7 +156,7 @@ galfo.setup({
 	},
 
 	-- Each tab could be text, static or icon
-	-- `text`: fuction(tab) return "some text" end
+    -- `text`: function(tab) return "some text" end
 	-- `static`: "" -- just a string
 	-- `icon`: function(icon, tab) end -- icon is the filetype string. must return just 1 icon.
 	-- `icon_custom`: function(tab) end -- must return just 1 icon.
@@ -171,12 +171,12 @@ galfo.setup({
 	-- is_focused: boolean
 	-- is_modified: boolean
 	-- is_pinned: boolean
-	-- diagnostics: {[vim.diagnostic.severity]: integer} -- Eg.: ab.diagnostics[vim.diagnostic.severity.ERROR]
+	-- diagnostics: {[vim.diagnostic.severity]: integer} -- Eg.: tab.diagnostics[vim.diagnostic.severity.ERROR]
 	--
 	-- `highlights`: It receives the highlight group.
 	-- You can customize existing colors using:
-	-- `Galfo.derive_hl` (returns new group)
-	-- `Galfo.get_hex` (return { fg: string, bf: string })
+	-- `galfo.derive_hl` (returns new group)
+	-- `galfo.get_hex` (return { fg: string, bg: string })
 	-- Diagnostics overrides the default and is applied using `diagnostic.filter`
 	-- highlights = {
 	--   visible = { default = "", modified = "" },
@@ -201,16 +201,23 @@ galfo.setup({
 				focused = { default = "TablineFocused", modified = "TablineFocused" },
 			},
 		},
-        {
-          -- Attention: for icons just return 1 icon each time.
-          icon = function(icon, _tab)
-            -- return _tab.is_pinned and "󰐃" or icon
-            return icon
-          end,
-          -- on_click = function(buf)
-          --   galfo.toggle_pin(buf)
-          -- end,
-        },
+		{
+			-- Attention: for icons just return 1 icon each time.
+			icon = function(icon, _tab)
+				-- return _tab.is_pinned and "󰐃" or icon
+				return icon
+			end,
+			-- on_click = function(buf)
+			--   galfo.toggle_pin(buf)
+			-- end,
+		},
+		{
+			static = " ",
+			highlights = {
+				visible = { default = "TablineVisible", modified = "TablineVisible" },
+				focused = { default = "TablineFocused", modified = "TablineFocused" },
+			},
+		},
 		{
 			text = function(tab)
 				return tab.unique_prefix .. tab.name
@@ -223,14 +230,14 @@ galfo.setup({
 				focused = { default = "TablineFocused", modified = "TablineFocused" },
 			},
 		},
-        {
-          icon_custom = function()
-            return "󰅖"
-          end,
-          on_click = function(bufnr, clicks, button, mods)
-            galfo.close_tab(bufnr, false)
-          end,
-        },
+		{
+			icon_custom = function()
+				return "󰅖"
+			end,
+			on_click = function(bufnr, clicks, button, mods)
+				require("galfo").close_tab(bufnr, false)
+			end,
+		},
 		{
 			static = " ",
 			highlights = {
@@ -256,7 +263,7 @@ galfo.setup({
 	-- dynamic in the state set.
 	-- The index is if you want to display the tab index position.
 	-- So it will update whenever that position changes.
-    -- dynamic = { index = false, diagnostics = false, focused = { diagnostics = false }, visible = { diagnostics = true } },
+	-- dynamic = { index = false, diagnostics = true, focused = { diagnostics = false }, visible = { diagnostics = true } },
 	dynamic = { index = true, diagnostics = true },
 
 	-- `first`: appears for the first tab.
@@ -277,12 +284,10 @@ galfo.setup({
 	icons = {
 		enabled = true,
 		provider = "mini.icons", -- "mini.icons"|"nvim-web-devicons" default: "mini.icons"
-        -- If the configured provider is not available, galfo will automatically
-        -- fallback to the other provider. If neither is available, icons are disabled.
+		-- If the configured provider is not available, galfo will automatically
+		-- fallback to the other provider. If neither is available, icons are disabled.
 	},
 
-    -- it handles sidebar on right too.
-    -- Just 1 sidebar.
 	sidebar = {
 		enabled = true,
 		label = "Explorer",
@@ -307,7 +312,7 @@ galfo.setup({
 	},
 
 	-- Used when a buffer is deleted/replaced in a window.
-	-- That's is for my use case. hehe
+	-- That's for my use case.
 	-- I have a bright cursor line in the "current buffer" and a dimmed version in
 	-- all other windows, so it has to run in other windows to preserve this behavior.
 	-- If you don't have that kind of usage, just ignore.
