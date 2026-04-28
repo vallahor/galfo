@@ -321,16 +321,12 @@ local function component_on_click(bufnr, index, text)
 	return "%" .. (lshift(bufnr, 16) + index) .. "@v:lua.ComponentOnClick@" .. text .. "%X" .. tab_on_click(bufnr)
 end
 
-local function update_buf_index()
+local function update_buf_cache()
 	buf_index = {}
 	viewport.total_tabs_width = 0
 	for i = 1, #buf_cache do
 		buf_index[buf_cache[i]] = i
 		viewport.total_tabs_width = viewport.total_tabs_width + tabs_cache[i].width
-	end
-	local index = buf_index[viewport.buf]
-	if not sidebar.focus and index then
-		viewport.index = index
 	end
 	viewport_state.updated = true
 end
@@ -729,7 +725,7 @@ local function resolve_update_tab(buf)
 	tab_update(tab)
 	tab_set_new_display(tab)
 	tabs_cache[index] = tab
-	update_buf_index()
+	update_buf_cache()
 end
 
 local function insert_buf_into_tabline(buf)
@@ -741,7 +737,7 @@ local function insert_buf_into_tabline(buf)
 	table_insert(buf_cache, buf)
 	table_insert(tabs_cache, tab)
 	viewport.buf = buf
-	update_buf_index()
+	update_buf_cache()
 end
 
 local function init_bufs(bufs)
@@ -806,7 +802,7 @@ local function remove_buf_from_tabline(bufnr)
 		nvim_win_set_buf(win, replacement)
 		I.on_buf_replaced(cur_win, win)
 	end
-	update_buf_index()
+	update_buf_cache()
 
 	if I.dynamic.index then
 		for i = index, #tabs_cache do
@@ -1413,7 +1409,7 @@ function Galfo.move_tab_begin()
 		table_insert(buf_cache, 1, b)
 		local t = table_remove(tabs_cache, i)
 		table_insert(tabs_cache, 1, t)
-		update_buf_index()
+		update_buf_cache()
 
 		if I.dynamic.index then
 			for index = i, 1, -1 do
@@ -1438,7 +1434,7 @@ function Galfo.move_tab_end()
 		buf_cache[#buf_cache + 1] = b
 		local t = table_remove(tabs_cache, i)
 		tabs_cache[#tabs_cache + 1] = t
-		update_buf_index()
+		update_buf_cache()
 
 		if I.dynamic.index then
 			for index = i, #tabs_cache do
