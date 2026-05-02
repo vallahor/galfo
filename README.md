@@ -1,6 +1,6 @@
 # Galfo
 
-A fast and lightweight tabline plugin for Neovim.
+A fast and highly customizable tabline plugin for Neovim.
 
 ## Features
  
