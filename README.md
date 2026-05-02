@@ -127,10 +127,40 @@ galfo.setup({
 
 	session_dir = vim.fn.stdpath("data") .. "/galfo",
 
-	scratch_buffer_name = "[No Name]",
+	-- Always show the file path in the tab. For long paths, consider customizing
+	-- the `resolve_buf_name` function in the config to shorten or format them.
+	always_show_path = false,
 
-	-- Only useful if on windows.
-	force_unix_path_sep = true,
+    -- Demo: Just shows how to do but has a bit of optimization in the default config.
+    -- To make it a bit faster, hoist `string.gsub`, `string.match`, and `IS_WINDOWS`
+    -- to file-level locals, since this function runs in a hot path.
+    -- Note: in the config the "\" is already escaped and normalized to "/" on Windows
+    -- (since Neovim plans to make "/" the default separator in the future).
+	resolve_buf_name = function(buf)
+		local bufname = vim.api.nvim_buf_get_name(buf)
+		if bufname == "" then
+			return "", "[No Name]", ""
+		end
+		local tail = vim.fn.fnamemodify(bufname, ":t")
+		local ext = vim.fn.fnamemodify(bufname, ":e")
+		local relative = vim.fn.fnamemodify(bufname, ":~:.")
+		local IS_WINDOWS = vim.fn.has("win32") == 1
+
+		local sep = IS_WINDOWS and "^(.*\\)" or "^(.*/)"
+
+		-- DEMO: Shows how to normalize Windows "\" to "/". In practice, you can skip
+		-- the `sep` variable entirely and use "^(.*/)" directly in `string.match`.
+		-- `string.gsub` is still required for the replacement.
+		local linux_path_separator = true
+		if IS_WINDOWS and linux_path_separator then
+			relative = string.gsub(relative, "\\", "/")
+			sep = "^(.*/)"
+		end
+
+		local dir = string.match(relative, sep) or ""
+
+		return dir, tail, ext
+	end,
 
 	-- There are cases where the width of the tabline can't accommodate the last icon
 	-- before the truncate_right, so it will blend with the
@@ -156,7 +186,7 @@ galfo.setup({
 	},
 
 	-- Each tab could be text, static or icon
-    -- `text`: function(tab) return "some text" end
+	-- `text`: function(tab) return "some text" end
 	-- `static`: "" -- just a string
 	-- `icon`: function(icon, tab) end -- icon is the filetype string. must return just 1 icon.
 	-- `icon_custom`: function(tab) end -- must return just 1 icon.

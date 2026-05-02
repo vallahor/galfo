@@ -1,3 +1,11 @@
+local fnamemodify = vim.fn.fnamemodify
+local nvim_buf_get_name = vim.api.nvim_buf_get_name
+
+local string_gsub = string.gsub
+local string_match = string.match
+
+local IS_WINDOWS = vim.fn.has("win32") == 1
+
 local M = {}
 
 M.defaults = {
@@ -10,10 +18,27 @@ M.defaults = {
 
 	session_dir = vim.fn.stdpath("data") .. "/galfo",
 
-	scratch_buffer_name = "[No Name]",
+	-- Always show the file path in the tab. For long paths, consider customizing
+	-- the `resolve_buf_name` function in the config to shorten or format them.
+	always_show_path = false,
 
-	-- Only useful if on windows.
-	force_unix_path_sep = true,
+	resolve_buf_name = function(buf)
+		local bufname = nvim_buf_get_name(buf)
+		if bufname == "" then
+			return "", "[No Name]", ""
+		end
+		local tail = fnamemodify(bufname, ":t")
+		local ext = fnamemodify(bufname, ":e")
+		local relative = fnamemodify(bufname, ":~:.")
+
+		if IS_WINDOWS then
+			relative = string_gsub(relative, "\\", "/")
+		end
+
+		local dir = string_match(relative, "^(.*/)") or ""
+
+		return dir, tail, ext
+	end,
 
 	-- There are cases where the width of the tabline can't accommodate the last icon
 	-- before the truncate_right, so it will blend with the

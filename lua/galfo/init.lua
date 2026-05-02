@@ -10,7 +10,6 @@ local diagnostic_count = vim.diagnostic.count
 
 local string_rep = string.rep
 local string_gsub = string.gsub
-local string_match = string.match
 local string_format = string.format
 
 local math_min = math.min
@@ -22,7 +21,6 @@ local table_concat = table.concat
 local table_insert = table.insert
 local table_remove = table.remove
 
-local fnamemodify = fn.fnamemodify
 local strcharpart = fn.strcharpart
 local win_findbuf = fn.win_findbuf
 local stdpath = fn.stdpath
@@ -331,25 +329,6 @@ local function update_buf_cache()
 	viewport_state.updated = true
 end
 
-local function resolve_buf_name(buf)
-	local bufname = nvim_buf_get_name(buf)
-	if bufname == "" then
-		return "", I.tab.scratch_buffer_name, ""
-	end
-	local tail = fnamemodify(bufname, ":t")
-	local ext = fnamemodify(bufname, ":e")
-	local relative = fnamemodify(bufname, ":~:.")
-
-	if IS_WINDOWS and I.tab.force_unix_path_sep then
-		relative = string_gsub(relative, "\\", "/")
-	end
-
-	local sep = (IS_WINDOWS and not I.tab.force_unix_path_sep) and "^(.*\\)" or "^(.*/)"
-	local dir = string_match(relative, sep) or ""
-
-	return dir, tail, ext
-end
-
 local function resolve_buf_repeated_names(tail)
 	return tabs_repeated_names_buf_cache[tail] and tabs_repeated_names_buf_cache[tail].count > 1 and tail ~= ""
 end
@@ -646,7 +625,7 @@ local function build_tab(buf, dir, tail, ext)
 		tail = tail,
 		ext = ext,
 		dir = dir,
-		unique_prefix = resolve_buf_repeated_names(tail) and dir or "",
+		unique_prefix = (I.always_show_path and dir) or resolve_buf_repeated_names(tail) and dir or "",
 		icon = make_tab_icon(ext),
 		buf = buf,
 		width = 0,
@@ -716,8 +695,8 @@ local function resolve_update_tab(buf)
 		return
 	end
 	local tail = tabs_cache[index].tail
-	local dir, new_tail, ext = resolve_buf_name(buf)
-	if tail ~= new_tail then
+	local dir, new_tail, ext = I.resolve_buf_name(buf)
+	if not I.always_show_path and tail ~= new_tail then
 		repeated_names_remove(buf, tail)
 		repeated_names_insert(buf, new_tail)
 	end
@@ -729,8 +708,10 @@ local function resolve_update_tab(buf)
 end
 
 local function insert_buf_into_tabline(buf)
-	local dir, tail, ext = resolve_buf_name(buf)
-	repeated_names_insert(buf, tail)
+	local dir, tail, ext = I.resolve_buf_name(buf)
+	if not I.always_show_path then
+		repeated_names_insert(buf, tail)
+	end
 	local tab = build_tab(buf, dir, tail, ext)
 	tab_update(tab)
 	tab_set_new_display(tab)
@@ -2031,9 +2012,10 @@ function Galfo.setup(opts)
 	I.tab = {}
 	I.tab.on_click = config.tab.on_click
 
-	I.tab.force_unix_path_sep = config.force_unix_path_sep
-	I.tab.scratch_buffer_name = config.scratch_buffer_name
 	I.tab.last_icon_blend = config.last_icon_blend
+
+	I.resolve_buf_name = config.resolve_buf_name
+	I.always_show_path = config.always_show_path
 
 	I.tabs = config.tabs
 	I.base_highlights = config.base_highlights
