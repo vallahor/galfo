@@ -184,7 +184,7 @@ local hl_cache = {}
 ---@field display string
 ---@field tail string
 ---@field ext string
----@field unique_prefix string
+---@field path string
 ---@field buf integer
 ---@field width integer
 ---@field visibility integer
@@ -430,15 +430,15 @@ local function resolve_hl(hl, state)
 	return bucket.default or ""
 end
 
-local function tab_update_unique_prefix(tab)
-	tab.unique_prefix = resolve_buf_repeated_names(tab.tail) and tab.dir or ""
+local function path(tab)
+	tab.path = resolve_buf_repeated_names(tab.tail) and tab.dir or ""
 end
 
 local function tab_resolve_state(tab, state)
 	local tab_state = {
 		name = tab.tail,
 		index = buf_index[tab.buf] or #tabs_cache + 1,
-		unique_prefix = tab.unique_prefix,
+		path = tab.path,
 		is_focused = band(state, STATES.FOCUSED) ~= 0,
 		is_modified = band(state, STATES.MODIFIED) ~= 0,
 		is_pinned = tabs_pin_cache[tab.buf] ~= nil,
@@ -625,7 +625,7 @@ local function build_tab(buf, dir, tail, ext)
 		tail = tail,
 		ext = ext,
 		dir = dir,
-		unique_prefix = (I.always_show_path and dir) or resolve_buf_repeated_names(tail) and dir or "",
+		path = (I.always_show_path and dir) or resolve_buf_repeated_names(tail) and dir or "",
 		icon = make_tab_icon(ext),
 		buf = buf,
 		width = 0,
@@ -652,7 +652,7 @@ local function refresh_tab(index)
 	if not tab then
 		return
 	end
-	tab_update_unique_prefix(tab)
+	path(tab)
 	tab_rerender(tab)
 	tab_set_new_display(tab)
 end

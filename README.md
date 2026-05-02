@@ -196,7 +196,7 @@ galfo.setup({
 	-- `on_click`: function(bufnr, clicks, button, mods) end
 	-- the `tab` parameter is:
 	-- name: string
-	-- unique_prefix: string -- with a path if a file with the same name appears.
+	-- path: string 
 	-- index: integer
 	-- is_focused: boolean
 	-- is_modified: boolean
@@ -250,7 +250,7 @@ galfo.setup({
 		},
 		{
 			text = function(tab)
-				return tab.unique_prefix .. tab.name
+				return tab.path .. tab.name
 			end,
 		},
 		{
