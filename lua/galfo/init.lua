@@ -430,7 +430,7 @@ local function resolve_hl(hl, state)
 	return bucket.default or ""
 end
 
-local function path(tab)
+local function tab_update_path(tab)
 	tab.path = resolve_buf_repeated_names(tab.tail) and tab.dir or ""
 end
 
@@ -652,7 +652,7 @@ local function refresh_tab(index)
 	if not tab then
 		return
 	end
-	path(tab)
+	tab_update_path(tab)
 	tab_rerender(tab)
 	tab_set_new_display(tab)
 end
