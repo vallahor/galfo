@@ -133,7 +133,9 @@ galfo.setup({
 
     -- Demo: Just shows how to do but has a bit of optimization in the default config.
     -- To make it a bit faster, hoist `string.gsub`, `string.match`, and `IS_WINDOWS`
-    -- to file-level locals, since this function runs in a hot path.
+    -- to file-level locals.
+    -- This function is just called when the tab is created. It is not called on redraw or 
+    -- any dynamic update.
     -- Note: in the config the "\" is already escaped and normalized to "/" on Windows
     -- (since Neovim plans to make "/" the default separator in the future).
 	resolve_buf_name = function(buf)
