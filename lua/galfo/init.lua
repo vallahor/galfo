@@ -161,7 +161,7 @@ local buf_index = {}
 ---@type {[integer]: table<integer, integer>?}
 local diag_cache = {}
 
----@type {[string], string?}
+---@type table<string, boolean?>
 local hl_cache = {}
 
 ---@class Components
@@ -259,23 +259,6 @@ Galfo.derive_hl = function(group, overrides)
 		strikethrough = overrides.strikethrough or val.strikethrough,
 	}
 
-	local key = (attrs.fg or 0)
-		.. "|"
-		.. (attrs.bg or 0)
-		.. "|"
-		.. (attrs.sp or 0)
-		.. "|"
-		.. (attrs.bold and "b" or "")
-		.. (attrs.italic and "i" or "")
-		.. (attrs.underline and "u" or "")
-		.. (attrs.undercurl and "c" or "")
-		.. (attrs.strikethrough and "s" or "")
-
-	local hl_name = hl_cache[key]
-	if hl_name then
-		return hl_name
-	end
-
 	local name = "Tbl"
 		.. (attrs.fg or 0)
 		.. (attrs.bg or 0)
@@ -285,8 +268,12 @@ Galfo.derive_hl = function(group, overrides)
 		.. (attrs.undercurl and "c" or "")
 		.. (attrs.strikethrough and "s" or "")
 
+	if hl_cache[name] then
+		return name
+	end
+
 	nvim_set_hl(0, name, attrs)
-	hl_cache[key] = name
+	hl_cache[name] = true
 	return name
 end
 
