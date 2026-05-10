@@ -52,7 +52,7 @@ M.defaults = {
 	-- bufnr: integer
 	-- focus()
 	-- close() -- receive the force (boolean) parameter to force delete the buffer
-	-- toggle_pin() -- receive the force (boolean) parameter to force delete the buffer
+	-- toggle_pin()
 	tab = {
 		on_click = function(tab, _clicks, button, _mods)
 			if button == "l" then
