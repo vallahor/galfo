@@ -1219,6 +1219,7 @@ function I.GalfoRender()
 			end
 		end
 
+		tabs[#tabs + 1] = "%X"
 		tabs[#tabs + 1] = viewport.postfix
 		tabs[#tabs + 1] = viewport.endfix
 
