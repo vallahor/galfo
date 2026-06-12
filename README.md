@@ -337,9 +337,11 @@ galfo.setup({
 		buftypes = {
 			"terminal",
 			"prompt",
+			"acwrite",
 		},
 		filetypes = {
 			"qf",
+			"nvim-pack",
 		},
 	},
 

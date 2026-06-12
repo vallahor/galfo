@@ -213,9 +213,11 @@ M.defaults = {
 		buftypes = {
 			"terminal",
 			"prompt",
+			"acwrite",
 		},
 		filetypes = {
 			"qf",
+			"nvim-pack",
 		},
 	},
 
