@@ -63,7 +63,6 @@ local I = {}
 ---@class ViewportState
 ---@field updated boolean
 ---@field size_changed boolean
----@field should_not_focus boolean
 ---@field tab_width_changed boolean
 ---@field simple_redraw boolean
 ---@field tab_shrink boolean
@@ -72,7 +71,6 @@ local I = {}
 local viewport_state = {
 	updated = true,
 	size_changed = false,
-	should_not_focus = false,
 	tab_width_changed = false,
 	simple_redraw = false,
 	tab_shrink = false,
@@ -1468,32 +1466,24 @@ end
 function Galfo.close_tab_left(force)
 	local bufnr = buf_cache[viewport.index - 1]
 
-	viewport_state.should_not_focus = true
 	Galfo.close_tab(bufnr, force)
-	viewport_state.should_not_focus = false
 end
 
 function Galfo.close_tab_right(force)
 	local bufnr = buf_cache[viewport.index + 1]
 
-	viewport_state.should_not_focus = true
 	Galfo.close_tab(bufnr, force)
-	viewport_state.should_not_focus = false
 end
 
 function Galfo.close_all_tab_left(force)
 	for i = viewport.index - 1, 1, -1 do
-		viewport_state.should_not_focus = true
 		Galfo.close_tab(buf_cache[i], force)
-		viewport_state.should_not_focus = false
 	end
 end
 
 function Galfo.close_all_tab_right(force)
 	for i = #buf_cache, viewport.index + 1, -1 do
-		viewport_state.should_not_focus = true
 		Galfo.close_tab(buf_cache[i], force)
-		viewport_state.should_not_focus = false
 
 		viewport_state.tab_width_changed = true
 	end
@@ -1597,11 +1587,18 @@ local function setup_autocmds()
 
 	api.nvim_create_autocmd({ "BufEnter" }, {
 		callback = function(ev)
-			if viewport_state.should_not_focus then
-				return
-			end
 			local buf = ev.buf
-			viewport.buf = buf
+			if viewport.buf ~= buf then
+				local index = buf_index[viewport.buf]
+				if index then
+					local tab = tabs_cache[index]
+					if tab.visibility ~= STATES.VISIBLE then
+						tab.visibility = STATES.VISIBLE
+						tab_set_new_display(tab)
+					end
+				end
+				viewport.buf = buf
+			end
 
 			if sidebar.enabled and sidebar_filetypes[bo[buf].filetype] then
 				sidebar.winnr = nvim_get_current_win()
@@ -1610,29 +1607,6 @@ local function setup_autocmds()
 			end
 
 			viewport_state.updated = true
-		end,
-	})
-
-	api.nvim_create_autocmd({ "BufLeave", "BufWinLeave" }, {
-		callback = function(ev)
-			if viewport_state.should_not_focus then
-				return
-			end
-
-			local index = buf_index[ev.buf]
-			if not index then
-				return
-			end
-
-			local tab = tabs_cache[index]
-			if not tab then
-				return
-			end
-
-			if tab.visibility ~= STATES.VISIBLE then
-				tab.visibility = STATES.VISIBLE
-				tab_set_new_display(tab)
-			end
 		end,
 	})
 
@@ -2023,6 +1997,11 @@ function Galfo.setup(opts)
 
 	for _, bufname in ipairs(config.ignore.bufnames) do
 		I.ignore.bufnames[bufname] = true
+	end
+
+	I.should_quit = {}
+	for _, filetype in ipairs(config.should_quit.filetypes) do
+		I.should_quit[filetype] = true
 	end
 
 	if config.icons.enabled then
