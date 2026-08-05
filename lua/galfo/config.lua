@@ -27,6 +27,14 @@ M.defaults = {
 		if bufname == "" then
 			return "", "[No Name]", ""
 		end
+
+		local buftype = vim.bo[buf].buftype
+		if buftype == "terminal" then
+			return "", "terminal", ""
+		elseif buftype == "nofile" or buftype == "acwrite" then
+			return "", bufname, ""
+		end
+
 		local tail = fnamemodify(bufname, ":t")
 		local ext = fnamemodify(bufname, ":e")
 		local relative = fnamemodify(bufname, ":~:.")
@@ -211,13 +219,17 @@ M.defaults = {
 	ignore = {
 		bufnames = {},
 		buftypes = {
-			"terminal",
 			"prompt",
-			"acwrite",
 		},
 		filetypes = {
 			"qf",
+		},
+	},
+
+	should_quit = {
+		filetypes = {
 			"nvim-pack",
+			"checkhealth",
 		},
 	},
 

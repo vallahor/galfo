@@ -143,6 +143,17 @@ galfo.setup({
 		if bufname == "" then
 			return "", "[No Name]", ""
 		end
+
+        -- Use `buftype` because for situations theres no
+        -- way to know the `filetype` at this time.
+        -- They were not resolved it by Neovim.
+		local buftype = vim.bo[buf].buftype
+		if buftype == "terminal" then
+			return "", "terminal", ""
+		elseif buftype == "nofile" or buftype == "acwrite" then
+			return "", bufname, ""
+		end
+
 		local tail = vim.fn.fnamemodify(bufname, ":t")
 		local ext = vim.fn.fnamemodify(bufname, ":e")
 		local relative = vim.fn.fnamemodify(bufname, ":~:.")
@@ -342,6 +353,16 @@ galfo.setup({
 		filetypes = {
 			"qf",
 			"nvim-pack",
+		},
+	},
+
+    -- Filetypes that require ":q" to leave them properly.
+    -- And by doing that is possible to close them 
+    -- with `galfo.close_tab`.
+	should_quit = {
+		filetypes = {
+			"nvim-pack",
+			"checkhealth",
 		},
 	},
 

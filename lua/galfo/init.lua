@@ -1458,7 +1458,9 @@ function Galfo.close_tab(bufnr, force)
 
 	remove_buf_from_tabline(bufnr)
 
-	if nvim_buf_is_valid(bufnr) then
+	if I.should_quit[bo[bufnr].filetype] then
+		vim.cmd.q()
+	elseif nvim_buf_is_valid(bufnr) then
 		nvim_buf_delete(bufnr, { force = true })
 	end
 end
