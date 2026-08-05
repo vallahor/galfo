@@ -346,13 +346,10 @@ galfo.setup({
 	ignore = {
 		bufnames = {},
 		buftypes = {
-			"terminal",
 			"prompt",
-			"acwrite",
 		},
 		filetypes = {
 			"qf",
-			"nvim-pack",
 		},
 	},
 
