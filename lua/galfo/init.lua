@@ -1623,16 +1623,18 @@ local function setup_autocmds()
 	})
 
 	if not config.no_modified then
-		api.nvim_create_autocmd("BufModifiedSet", {
-			callback = function(ev)
-				local index = buf_index[ev.buf]
+		api.nvim_create_autocmd("OptionSet", {
+			pattern = "modified",
+			callback = function()
+				local bufnr = nvim_get_current_buf()
+				local index = buf_index[bufnr]
 				if not index then
 					return
 				end
 
 				---@type Tab
 				local tab = tabs_cache[index]
-				local modified = bo[ev.buf].modified and STATES.MODIFIED or 0
+				local modified = bo[bufnr].modified and STATES.MODIFIED or 0
 
 				if tab.modified == modified then
 					return
