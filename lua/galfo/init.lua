@@ -702,7 +702,7 @@ local function insert_buf_into_tabline(buf)
 	tab_set_new_display(tab)
 	table_insert(buf_cache, buf)
 	table_insert(tabs_cache, tab)
-	viewport.buf = buf
+	viewport_state.tab_width_changed = true
 	update_buf_cache()
 end
 
@@ -713,6 +713,11 @@ local function init_bufs(bufs)
 		if bo[buf].buflisted and nvim_buf_is_valid(buf) and not buf_index[buf] then
 			insert_buf_into_tabline(buf)
 		end
+	end
+
+	local current_buf = nvim_get_current_buf()
+	if buf_index[current_buf] then
+		viewport.buf = current_buf
 	end
 end
 
@@ -1567,16 +1572,20 @@ function Galfo.execute_buf_queue()
 end
 
 local function setup_autocmds()
-	-- without it that's impossible to load properly buffers like InspectTree
-	-- Terminal and others ... and still working with Scratch buffers.
-	-- By following the `config.ignore`.
-	api.nvim_create_autocmd({ "BufWinEnter" }, {
+	-- Queue on BufAdd as well as BufWinEnter. Some pickers (for example fff)
+	-- bulk-open files with bufadd() and never display every added buffer in a
+	-- window. Defer filtering so the creator can finish setting 'buflisted',
+	-- 'buftype', and 'filetype' before `config.ignore` is evaluated.
+	api.nvim_create_autocmd({ "BufAdd", "BufWinEnter" }, {
 		callback = function(ev)
 			local buf = ev.buf
-			if not nvim_buf_is_valid(buf) or not bo[buf].buflisted or buf_index[buf] then
+			if not nvim_buf_is_valid(buf) or buf_index[buf] then
 				return
 			end
-			if I.restoring_session then
+			if ev.event ~= "BufAdd" and not bo[buf].buflisted then
+				return
+			end
+			if I.restoring_session and bo[buf].buflisted then
 				insert_buf_into_tabline(buf)
 			else
 				I.buf_queue[#I.buf_queue + 1] = buf
